@@ -1,3 +1,5 @@
 .idea
-debug/
-target/
+
+# Generated files
+/target/
+Cargo.lock
