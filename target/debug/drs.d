@@ -1,0 +1,1 @@
+D:\FHHagenberg\9_Semester\DRS\DRS\target\debug\drs.exe: D:\FHHagenberg\9_Semester\DRS\DRS\src\helper\guid.rs D:\FHHagenberg\9_Semester\DRS\DRS\src\helper\json_manager.rs D:\FHHagenberg\9_Semester\DRS\DRS\src\helper\mod.rs D:\FHHagenberg\9_Semester\DRS\DRS\src\helper\timestamp.rs D:\FHHagenberg\9_Semester\DRS\DRS\src\main.rs

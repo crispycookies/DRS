@@ -1,17 +1,9 @@
-mod master;
-mod slave;
+//mod master;
+//mod slave;
+mod helper;
 
-use std::thread;
+//use std::thread;
 
 fn main() {
-    let child = thread::spawn(move || {
-       let _ = master::test();
-    });
-    let child2 = thread::spawn(move || {
-        let _ = slave::test2();
-    });
-// some work here
-    let _ = child.join();
-// some work here
-    let _ = child2.join();
+    print!("{}", helper::json_manager::get_timestamp());
 }
