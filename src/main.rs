@@ -1,5 +1,6 @@
 mod master;
 mod slave;
+mod time;
 
 use std::thread;
 

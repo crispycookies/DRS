@@ -1,9 +1,11 @@
 use std::net::{UdpSocket};
-use std::env;
+use std::{env, io};
 use std::time::{Duration, Instant};
-use std::io::{Write};
+use std::io::{Write, Error, ErrorKind, Empty};
 use std::path::Path;
 use std::fs::File;
+
+use std::str;
 
 pub struct Rval {
     packages_dropped : u32,
@@ -17,6 +19,24 @@ pub fn store(timings: Vec<u128>, filename: &str) {
     for i in 0..timings.len() {
         let builder = i.to_string() + "," + &timings[i as usize].to_string() + "\n";
         let _write = file.write(builder.as_bytes());
+    }
+}
+
+pub fn send(socket: UdpSocket, send_packages: u32, addr: &str, message: &str) -> io::Result<usize>
+{
+    return socket.send_to(&message.as_bytes(), addr)
+}
+pub fn receive(socket: UdpSocket) -> io::Result<String>
+{
+    let mut buf_read = [0; 256];
+    let recv =  socket.recv_from(&mut buf_read);
+
+    match recv {
+        Ok(_) => {
+            let string = str::from_utf8(&buf_read).unwrap().to_string().to_string();
+            Ok(string)
+        },
+        Err(e) => Err(e),
     }
 }
 

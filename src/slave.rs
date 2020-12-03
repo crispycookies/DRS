@@ -30,7 +30,6 @@ pub fn test2() -> std::io::Result<()> {
 
             match socket.recv_from(&mut buf_read){
                 Err(_e) => {
-
                 }
                 _ => { match socket.send_to(&buf_read, args.get(2).unwrap().to_string()){
                     Err(_e) => {

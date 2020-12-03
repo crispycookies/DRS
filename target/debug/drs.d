@@ -1,0 +1,1 @@
+E:\Eigene\ Dateien\FH\Master\3.\ Semester\DRS\Projekt\DRS\target\debug\drs.exe: E:\Eigene\ Dateien\FH\Master\3.\ Semester\DRS\Projekt\DRS\src\main.rs E:\Eigene\ Dateien\FH\Master\3.\ Semester\DRS\Projekt\DRS\src\master.rs E:\Eigene\ Dateien\FH\Master\3.\ Semester\DRS\Projekt\DRS\src\slave.rs E:\Eigene\ Dateien\FH\Master\3.\ Semester\DRS\Projekt\DRS\src\time.rs
