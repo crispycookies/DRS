@@ -1,5 +1,5 @@
 [package]
-name = "DRS"
+name = "drs"
 version = "0.1.0"
 authors = ["tobi <s1910567016@students.fh-hagenberg.at>"]
 edition = "2018"
