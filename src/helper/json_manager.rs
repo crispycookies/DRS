@@ -10,18 +10,7 @@ pub fn get_timestamp() -> String{
 }
 
 pub fn serialize(str: const String){
-    let parsed = json::parse(r#"
-{
-    "code": 200,
-    "success": true,
-    "payload": {
-        "features": [
-            "awesome",
-            "easyAPI",
-            "lowLearningCurve"
-        ]
-    }
-}
+    return json::parse(str);
 }
 
 pub fn deserialize() -> String{
