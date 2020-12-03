@@ -5,13 +5,13 @@ use std::io::{Write};
 use std::path::Path;
 use std::fs::File;
 
-struct Rval {
+pub struct Rval {
     packages_dropped : u32,
     packages_survived : u32,
     timings : Vec<u128>
 }
 
-fn store(timings: Vec<u128>, filename: &str) {
+pub fn store(timings: Vec<u128>, filename: &str) {
     let path = Path::new(filename);
     let mut file = File::create(&path).expect("Could not create File");
     for i in 0..timings.len() {
@@ -20,7 +20,7 @@ fn store(timings: Vec<u128>, filename: &str) {
     }
 }
 
-fn run(socket: UdpSocket, send_packages: u32, addr : &str) -> Rval {
+pub fn run(socket: UdpSocket, send_packages: u32, addr : &str) -> Rval {
     let mut ret_val : Rval = Rval{packages_dropped : 0, packages_survived : 0, timings : Vec::new()};
 
     for _ in 0..send_packages {
@@ -54,7 +54,7 @@ fn run(socket: UdpSocket, send_packages: u32, addr : &str) -> Rval {
     return ret_val;
 }
 
-fn test() -> std::io::Result<()> {
+pub fn test() -> std::io::Result<()> {
     {
         let args: Vec<String> = env::args().collect();
         if args.len() != 5 {

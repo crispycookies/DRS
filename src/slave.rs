@@ -2,7 +2,7 @@ use std::net::{UdpSocket};
 use std::env;
 use std::time::{Duration};
 
-fn test2() -> std::io::Result<()> {
+pub fn test2() -> std::io::Result<()> {
     {
         let args: Vec<String> = env::args().collect();
         if args.len() != 3{
