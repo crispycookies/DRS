@@ -3,6 +3,7 @@ use crate::helper::json_manager::{Node, Protocol, Message};
 //mod master;
 //mod slave;
 mod helper;
+mod master;
 
 //use std::thread;
 
