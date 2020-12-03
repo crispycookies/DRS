@@ -14,5 +14,4 @@ fn main() {
     let _ = child.join();
 // some work here
     let _ = child2.join();
-    println!("Hello, world!");
 }
