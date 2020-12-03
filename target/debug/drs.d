@@ -1,1 +1,0 @@
-/home/tobi/CLionProjects/DRS_2/target/debug/drs: /home/tobi/CLionProjects/DRS_2/src/helper/guid.rs /home/tobi/CLionProjects/DRS_2/src/helper/json_manager.rs /home/tobi/CLionProjects/DRS_2/src/helper/mod.rs /home/tobi/CLionProjects/DRS_2/src/helper/timestamp.rs /home/tobi/CLionProjects/DRS_2/src/main.rs /home/tobi/CLionProjects/DRS_2/src/master.rs
