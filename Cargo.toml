@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 guid-create = "0.1.1"
 json = "0.12.4"
+[target.'cfg(target_os = "linux")'.dependencies]
+rppal = "0.11.3"
