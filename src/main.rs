@@ -15,5 +15,5 @@ fn main() {
     println!("{}", helper::json_manager::get_guid());
     println!("{}", helper::json_manager::get_timestamp());
     println!("{}", helper::json_manager::serialize(p));
-    helper::json_manager::deserialize("hallo".to_string());
+    helper::json_manager::deserialize("hallo".to_string()).expect("Test");
 }
