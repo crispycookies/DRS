@@ -1,19 +1,23 @@
-use crate::helper::json_manager::{Node, Protocol, Message};
+use std::error::Error;
+use std::thread;
+use std::time::Duration;
 
-//mod master;
-//mod slave;
-mod helper;
-mod master;
+use rppal::gpio::Gpio;
+use rppal::system::DeviceInfo;
 
-//use std::thread;
+const GPIO_LED: u8 = 3;
 
 fn main() {
-    let n: Node = Node {address: "Hallo".to_string(), priority: 0x3};
-    let m: Message = Message{msg_type: 0x1, payload: "Seas".to_string()};
-    let p: Protocol = Protocol { id:"Seas".to_string(), timestamp:"Seas".to_string(), node: n, msg: m };
+    println!("Blinking an LED on a {}.", DeviceInfo::new().expect("Could not fetch device").model());
 
-    println!("{}", helper::json_manager::get_guid());
-    println!("{}", helper::json_manager::get_timestamp());
-    println!("{}", helper::json_manager::serialize(p));
-    helper::json_manager::deserialize("hallo".to_string());
+    let mut pin = Gpio::new().expect("Test").get(GPIO_LED).expect("Test").into_output();
+
+    // Blink the LED by setting the pin's logic level high for 500 ms.
+    while true {
+        pin.set_high();
+        thread::sleep(Duration::from_millis(500));
+        pin.set_low();
+        thread::sleep(Duration::from_millis(500));
+    }
+
 }
