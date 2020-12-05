@@ -5,7 +5,7 @@ use std::time::Duration;
 use rppal::gpio::Gpio;
 use rppal::system::DeviceInfo;
 
-const GPIO_LED: u8 = 3;
+const GPIO_LED: u8 = 12;
 
 fn main() {
     println!("Blinking an LED on a {}.", DeviceInfo::new().expect("Could not fetch device").model());
