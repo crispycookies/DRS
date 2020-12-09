@@ -21,7 +21,7 @@ impl Comm {
     pub fn connect_socket(&mut self) {
         let _ = self.socket.connect(self.foreign_addr.to_string());
     }
-    pub fn send(&self, data: & String) -> std::io::Result<()> {
+    pub fn send(&self, data:  String) -> std::io::Result<()> {
         match self.socket.send_to(data.as_bytes(), self.foreign_addr.to_string()) {
             Err(e) => { Err(e) }
             _ => { Ok(()) }

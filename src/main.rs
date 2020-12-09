@@ -1,4 +1,5 @@
 mod comm;
+mod helper;
 
 use std::{thread, time};
 
@@ -10,13 +11,13 @@ fn test1() -> () {
     test.connect_socket();
 
     for _ in 0..1000 {
-       match test.send(&"Hallo".to_string()){
-           Ok(_) => {print!("Succeeded in Sending\n")}
-           Err(_) => {print!("Failed to send\n")}
-       }
-        match test.receive(){
-            Ok(e) => {print!("Received: {}", e)}
-            Err(_) => {print!("Failed to send\n")}
+        match test.send("Hallo".to_string()) {
+            Ok(_) => { print!("Succeeded in Sending\n") }
+            Err(_) => { print!("Failed to send\n") }
+        }
+        match test.receive() {
+            Ok(e) => { print!("Received: {}", e) }
+            Err(_) => { print!("Failed to send\n") }
         }
     }
 }
@@ -29,21 +30,13 @@ fn test2() -> () {
     test.connect_socket();
 
     for _ in 0..1000 {
-        match test.receive(){
-            Ok(e) => {print!("Received: {}", e)}
-            Err(_) => {print!("Received nothing\n")}
+        match test.receive() {
+            Ok(e) => { print!("Received: {}", e) }
+            Err(_) => { print!("Received nothing\n") }
         }
     }
 }
 
 fn main() {
-    let ten_millis = time::Duration::from_millis(10);
-    let t1 = thread::spawn(move || {
-        test1();
-    });
-    let t2 = thread::spawn(move || {
-        //test2();
-    });
-    let _ = t1.join();
-    let _ = t2.join();
+    test1();
 }
