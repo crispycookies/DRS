@@ -1,23 +1,45 @@
-use std::error::Error;
-use std::thread;
-use std::time::Duration;
+mod comm;
 
-use rppal::gpio::Gpio;
-use rppal::system::DeviceInfo;
+use std::{thread, time};
 
-const GPIO_LED: u8 = 12;
+fn test1() -> () {
+    let mut test = comm::comm_low_level::Comm::default();
+    test.foreign_addr = "127.0.0.1:1884".to_string();
+    test.own_addr = "127.0.0.1:1882".to_string();
+    test.make_socket(100, true);
+    test.connect_socket();
+
+    for _ in 0..1000 {
+       match test.send(&"Hallo".to_string()){
+           Ok(_) => {print!("Succeeded in Sending\n")}
+           Err(_) => {print!("Failed to send\n")}
+       }
+    }
+}
+
+fn test2() -> () {
+    let mut test = comm::comm_low_level::Comm::default();
+    test.foreign_addr = "127.0.0.1:1880".to_string();
+    test.own_addr = "127.0.0.1:1881".to_string();
+    test.make_socket(100, true);
+    test.connect_socket();
+
+    for _ in 0..1000 {
+        match test.receive(){
+            Ok(e) => {print!("Received: {}", e)}
+            Err(_) => {print!("Received nothing\n")}
+        }
+    }
+}
 
 fn main() {
-    println!("Blinking an LED on a {}.", DeviceInfo::new().expect("Could not fetch device").model());
-
-    let mut pin = Gpio::new().expect("Test").get(GPIO_LED).expect("Test").into_output();
-
-    // Blink the LED by setting the pin's logic level high for 500 ms.
-    while true {
-        pin.set_high();
-        thread::sleep(Duration::from_millis(500));
-        pin.set_low();
-        thread::sleep(Duration::from_millis(500));
-    }
-
+    let ten_millis = time::Duration::from_millis(10);
+    let t1 = thread::spawn(move || {
+        test1();
+    });
+    let t2 = thread::spawn(move || {
+        test2();
+    });
+    let _ = t1.join();
+    let _ = t2.join();
 }
