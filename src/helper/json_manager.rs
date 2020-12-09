@@ -29,10 +29,6 @@ pub fn get_guid() -> String{
     return guid::create_random_guid();
 }
 
-pub fn get_timestamp() -> String{
-    return timestamp::get_time_us();
-}
-
 // Use with Unwrap!
 pub fn deserialize(sequence: String) -> std::io::Result<Protocol>{
     match serde_json::from_str::<Protocol>(sequence.as_str()) {
