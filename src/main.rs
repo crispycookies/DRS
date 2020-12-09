@@ -1,9 +1,7 @@
 mod comm;
 mod helper;
 
-use std::{thread, time};
 use crate::helper::json_manager::{Node, Message, Protocol};
-use std::borrow::Borrow;
 
 fn test1() -> () {
     let mut test = comm::comm::EasyComm {comm : comm::comm_low_level::Comm::default()};
@@ -27,7 +25,7 @@ fn test1() -> () {
         }
     }
 }
-
+#[allow(dead_code)]
 fn test2() -> () {
     let mut test = comm::comm_low_level::Comm::default();
     test.foreign_addr = "127.0.0.1:1880".to_string();

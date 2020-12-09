@@ -1,9 +1,6 @@
 use crate::helper::guid;
-use crate::helper::timestamp;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Result, Error};
-use std::io::ErrorKind;
 
 #[derive(Serialize, Deserialize)]
 pub struct Node{
@@ -24,12 +21,12 @@ pub struct Protocol {
     pub node: Node,
     pub msg: Message
 }
-
+#[allow(dead_code)]
 pub fn get_guid() -> String{
     return guid::create_random_guid();
 }
 
-// Use with Unwrap!
+#[allow(dead_code)]
 pub fn deserialize(sequence: String) -> std::io::Result<Protocol>{
     match serde_json::from_str::<Protocol>(sequence.as_str()) {
         Ok(e) => {Ok(e)}
@@ -37,7 +34,7 @@ pub fn deserialize(sequence: String) -> std::io::Result<Protocol>{
     }
 
 }
-
+#[allow(dead_code)]
 pub fn serialize(pro: Protocol) -> String {
     return serde_json::to_string(&pro).expect("Could not Serialize Protocol")
 }
