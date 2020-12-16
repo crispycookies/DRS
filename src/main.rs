@@ -37,14 +37,14 @@ fn master() -> () {
     loop {
         let cloned_guid  = guid.guid.clone();
         let n: Node = Node { address: args.get(2).unwrap().to_string(), priority: 0x3 };
-        let m: Message = Message { msg_type: 0x3, payload: "".to_string() };
+        let m: Message = Message { msg_type: 0x3, payload: "hallo".to_string() };
         let p: Protocol = Protocol { id: cloned_guid, timestamp: time.get_time_with_offset().to_string(), node: n, msg: m };
 
         match master.send_package(p) {
             Ok(_) => { print!("Succeeded in Sending\n") }
             Err(_) => { print!("Failed to send\n") }
         }
-
+        /*
         match master.receive_package() {
             Ok(e) => {
                 print!("received package {}", helper::json_manager::serialize(e.clone()));
@@ -65,8 +65,8 @@ fn master() -> () {
                 print!("{}", e);
             }
         }
-
-        std::thread::sleep(Duration::from_millis(1000));
+        */
+        //std::thread::sleep(Duration::from_millis(1000));
     }
 }
 
@@ -91,6 +91,7 @@ fn slave() -> () {
     loop {
         match slave.receive_package() {
             Ok(e) => {
+
                 print!("received package {}", helper::json_manager::serialize(e.clone()));
                 if e.msg.msg_type == 0x5 {
                     let cloned_guid  = guid.guid.clone();
@@ -103,13 +104,14 @@ fn slave() -> () {
                         Err(_) => { print!("Failed to send\n") }
                     }
                 }
+
             }
             Err(e) => {
                 print!("No Package received or package damaged!\n");
                 print!("{}", e);
             }
         }
-
+/*
         match slave.receive_package() {
             Ok(e) => {
                 print!("received package {}", helper::json_manager::serialize(e.clone()));
@@ -121,6 +123,8 @@ fn slave() -> () {
                 print!("{}", e);
             }
         }
+
+ */
     }
 }
 

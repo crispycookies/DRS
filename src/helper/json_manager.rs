@@ -24,9 +24,12 @@ pub struct Protocol {
 
 #[allow(dead_code)]
 pub fn deserialize(sequence: String) -> std::io::Result<Protocol>{
+    let sequence = sequence.trim_matches(char::from(0)).to_string();
     match serde_json::from_str::<Protocol>(sequence.as_str()) {
         Ok(e) => {Ok(e)}
-        Err(_) => {Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Data parsed is erroneous"))}
+        Err(e) => {
+            print!("{}\n",e.to_string());
+            Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Data parsed is erroneous"))}
     }
 
 }

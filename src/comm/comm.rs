@@ -24,6 +24,7 @@ impl EasyComm {
     pub fn receive_package(&self) -> std::io::Result<Protocol> {
         match self.comm.receive() {
             Ok(e) => {
+                print!("{}\n",e);
                 match deserialize(e){
                     Ok(e) => {Ok(e)}
                     Err(e) => {Err(e)}
