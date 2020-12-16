@@ -21,10 +21,6 @@ pub struct Protocol {
     pub node: Node,
     pub msg: Message
 }
-#[allow(dead_code)]
-pub fn get_guid() -> String{
-    return guid::create_random_guid();
-}
 
 #[allow(dead_code)]
 pub fn deserialize(sequence: String) -> std::io::Result<Protocol>{
