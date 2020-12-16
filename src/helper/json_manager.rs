@@ -2,19 +2,19 @@ use crate::helper::guid;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Node{
     pub address: String,
     pub priority: u8
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,  Clone)]
 pub struct Message{
     pub msg_type: u8,
     pub payload: String
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,  Clone)]
 pub struct Protocol {
     pub id: String,
     pub timestamp: String,

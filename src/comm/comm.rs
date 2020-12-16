@@ -14,6 +14,7 @@ impl EasyComm {
     #[allow(dead_code)]
     pub fn send_package(&self, protocol: Protocol) -> std::io::Result<()> {
         let serialized = serialize(protocol);
+        print!("{}",serialized);
         match self.comm.send(serialized) {
             Ok(_) => { Ok(()) }
             Err(e) => { Err(e) }
