@@ -132,6 +132,7 @@ impl Master {
         self.communication_if.comm.own_addr = o_addr;
         self.communication_if.init(timeout, true);
 
+
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
         guid.create_random_guid();
 
