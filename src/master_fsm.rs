@@ -1,5 +1,6 @@
 use crate::{comm, helper};
 use crate::helper::json_manager::{Node, Message, Protocol};
+use std::collections::HashMap;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
@@ -15,15 +16,24 @@ pub enum MessageTypes {
 }
 
 #[allow(dead_code)]
+#[derive(Clone)]
+pub struct Client {
+    url: String
+}
+
+#[allow(dead_code)]
 #[derive(Copy, Clone)]
 enum FSM {
-    LAN
+    StartUp,
+    LAN,
 }
+
 
 pub struct Master {
     pub communication_if: comm::comm::EasyComm,
-    pub time :  helper::time::Time,
-    pub prio : u8
+    pub time: helper::time::Time,
+    pub prio: u8,
+    pub client_vector: HashMap<u8, Client>
 }
 
 #[allow(dead_code)]
@@ -125,10 +135,55 @@ impl Master {
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
         guid.create_random_guid();
 
+        let _fsm = FSM::StartUp;
+        let mut client_vector: HashMap<u8, Client> = HashMap::new();
 
         loop {
-            let guid_clone = guid.guid.clone();
-            self.broadcast_new_master(guid_clone);
+            match self.communication_if.receive_package() {
+                Ok(e) => {
+                    if e.msg.msg_type == MessageTypes::LanBroadcast as u8 {
+                        let msg_type: MessageTypes = MessageTypes::LanBroadcastAck;
+                        let payload = "".to_string();
+                        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
+                        let m: Message = Message { msg_type: msg_type as u8, payload };
+                        let p: Protocol = Protocol { id: guid.guid.clone(), timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
+
+
+                        let f_addr_recvd = e.node.address.clone();
+                        if client_vector.contains_key(&e.node.priority) {
+                            print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, client_vector.get(&e.node.priority).unwrap().url, e.node.address);
+                        } else {
+                            client_vector.insert(e.node.priority, Client { url: e.node.address });
+                        }
+
+                        self.communication_if.comm.foreign_addr = f_addr_recvd;
+
+                        match self.communication_if.send_package(p) {
+                            Ok(_) => {}
+                            Err(_) => {}
+                        }
+                    } else {
+                        if client_vector.is_empty() {
+                            print!("---");
+                            print!("Nothing Received");
+                            print!("---");
+                        } else {
+                            print!("Clients Connected #{}", client_vector.len());
+                        }
+
+                    }
+
+                }
+
+                Err(_) => {}
+            }
+
+            //match fsm {
+            //    FSM::StartUp => {}
+            //    FSM::LAN => {}
+            //}
+            //let guid_clone = guid.guid.clone();
+            //self.broadcast_new_master(guid_clone);
         }
     }
 }
