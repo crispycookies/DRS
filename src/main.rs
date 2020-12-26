@@ -90,7 +90,7 @@ fn main() {
         master.run(args.get(1).expect("expect a foreign address").to_string(),
                    args.get(2).expect("expect own address").to_string(),
                    args.get(3).expect("expect a timeout value").
-                       parse::<u64>().expect("expect a valid timeout"))
+                       parse::<u64>().expect("expect a valid timeout"), 255)
 
 
         //master()

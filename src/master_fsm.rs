@@ -31,20 +31,18 @@ enum FSM {
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub enum Register {
-    NoneReceived,
+    NoneReceived = 0,
     NoneRegistered,
     OneRegistered,
-    FailedAck
+    FailedAck,
 }
-
-
 
 
 pub struct Master {
     pub communication_if: comm::comm::EasyComm,
     pub time: helper::time::Time,
     pub prio: u8,
-    pub client_vector: HashMap<u8, Client>
+    pub client_vector: HashMap<u8, Client>,
 }
 
 #[allow(dead_code)]
@@ -137,6 +135,7 @@ impl Master {
         };
     }
 
+    #[allow(unused_assignments)]
     pub fn register(&mut self, e: Protocol, guid: String) -> Register {
         if e.msg.msg_type == MessageTypes::LanBroadcast as u8 {
             let msg_type: MessageTypes = MessageTypes::LanBroadcastAck;
@@ -161,19 +160,25 @@ impl Master {
             self.communication_if.comm.foreign_addr = f_addr_rec_d;
 
             match self.communication_if.send_package(p) {
-                Ok(_) => {  }
-                Err(_) => { }
+                Ok(_) => {}
+                Err(_) => {}
             }
-            return r_val
+            return r_val;
         }
         print!("None Received!");
         return Register::NoneReceived;
     }
 
-    pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64) -> () {
+
+    pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
         self.communication_if.comm.foreign_addr = f_addr;
         self.communication_if.comm.own_addr = o_addr;
         self.communication_if.init(timeout, true);
+
+
+        std::thread::spawn(move || {
+
+        });
 
 
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
@@ -181,22 +186,19 @@ impl Master {
 
         let _fsm = FSM::StartUp;
 
+        self.client_vector.insert(init_prio, Client { url: self.communication_if.comm.own_addr.clone() });
+
         loop {
             let guid_clone = guid.guid.clone();
             match self.communication_if.receive_package() {
                 Ok(e) => {
-                    let _ = self.register(e, guid_clone.clone());
+                    if self.register(e.clone(), guid_clone.clone()) as u8 != Register::NoneReceived as u8 {
+
+                    }
                 }
 
                 Err(_) => {}
             }
-
-            //match fsm {
-            //    FSM::StartUp => {}
-            //    FSM::LAN => {}
-            //}
-            //let guid_clone = guid.guid.clone();
-            //self.broadcast_new_master(guid_clone);
         }
     }
 }
