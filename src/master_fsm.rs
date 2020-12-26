@@ -28,6 +28,17 @@ enum FSM {
     LAN,
 }
 
+#[allow(dead_code)]
+#[derive(Copy, Clone)]
+pub enum Register {
+    NoneReceived,
+    NoneRegistered,
+    OneRegistered,
+    FailedAck
+}
+
+
+
 
 pub struct Master {
     pub communication_if: comm::comm::EasyComm,
@@ -126,6 +137,38 @@ impl Master {
         };
     }
 
+    pub fn register(&mut self, e: Protocol, guid: String) -> Register {
+        if e.msg.msg_type == MessageTypes::LanBroadcast as u8 {
+            let msg_type: MessageTypes = MessageTypes::LanBroadcastAck;
+            let payload = "".to_string();
+
+            let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
+            let m: Message = Message { msg_type: msg_type as u8, payload };
+            let p: Protocol = Protocol { id: guid, timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
+
+            let mut r_val: Register = Register::NoneReceived;
+
+            let f_addr_rec_d = e.node.address.clone();
+            if self.client_vector.contains_key(&e.node.priority) {
+                print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, self.client_vector.get(&e.node.priority).unwrap().url, e.node.address);
+                r_val = Register::NoneRegistered;
+            } else {
+                print!("Registering Client with address {}\n {} Clients connected", e.node.address, self.client_vector.len());
+                self.client_vector.insert(e.node.priority, Client { url: e.node.address });
+                r_val = Register::OneRegistered;
+            }
+
+            self.communication_if.comm.foreign_addr = f_addr_rec_d;
+
+            match self.communication_if.send_package(p) {
+                Ok(_) => {  }
+                Err(_) => { }
+            }
+            return r_val
+        }
+        print!("None Received!");
+        return Register::NoneReceived;
+    }
 
     pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64) -> () {
         self.communication_if.comm.foreign_addr = f_addr;
@@ -137,43 +180,12 @@ impl Master {
         guid.create_random_guid();
 
         let _fsm = FSM::StartUp;
-        let mut client_vector: HashMap<u8, Client> = HashMap::new();
 
         loop {
+            let guid_clone = guid.guid.clone();
             match self.communication_if.receive_package() {
                 Ok(e) => {
-                    if e.msg.msg_type == MessageTypes::LanBroadcast as u8 {
-                        let msg_type: MessageTypes = MessageTypes::LanBroadcastAck;
-                        let payload = "".to_string();
-                        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
-                        let m: Message = Message { msg_type: msg_type as u8, payload };
-                        let p: Protocol = Protocol { id: guid.guid.clone(), timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
-
-
-                        let f_addr_recvd = e.node.address.clone();
-                        if client_vector.contains_key(&e.node.priority) {
-                            print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, client_vector.get(&e.node.priority).unwrap().url, e.node.address);
-                        } else {
-                            client_vector.insert(e.node.priority, Client { url: e.node.address });
-                        }
-
-                        self.communication_if.comm.foreign_addr = f_addr_recvd;
-
-                        match self.communication_if.send_package(p) {
-                            Ok(_) => {}
-                            Err(_) => {}
-                        }
-                    } else {
-                        if client_vector.is_empty() {
-                            print!("---");
-                            print!("Nothing Received");
-                            print!("---");
-                        } else {
-                            print!("Clients Connected #{}", client_vector.len());
-                        }
-
-                    }
-
+                    let _ = self.register(e, guid_clone.clone());
                 }
 
                 Err(_) => {}

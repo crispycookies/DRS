@@ -7,7 +7,6 @@ use crate::helper::json_manager::{Node, Message, Protocol};
 //use rppal::system::DeviceInfo;
 use std::env;
 use crate::master_fsm::{Master, MessageTypes};
-use std::io::Error;
 use std::time::Duration;
 use std::collections::HashMap;
 
