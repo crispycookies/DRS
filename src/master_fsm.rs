@@ -1,7 +1,5 @@
 use crate::{comm, helper};
 use crate::helper::json_manager::{Node, Message, Protocol};
-use std::io::Result;
-use std::io::Error;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
@@ -23,9 +21,12 @@ enum FSM {
 }
 
 pub struct Master {
-    pub communication_if: comm::comm::EasyComm
+    pub communication_if: comm::comm::EasyComm,
+    pub time :  helper::time::Time,
+    pub prio : u8
 }
 
+#[allow(dead_code)]
 impl Master {
     pub fn get_url(&self, url: String) -> String {
         let pos = url.find(':');
@@ -43,27 +44,65 @@ impl Master {
                         }
                     }
 
-                    Err(e) => {
+                    Err(_) => {
                         None
                     }
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 None
             }
         };
-        return None;
     }
+    pub fn broadcast_lan(&mut self, guid: String) -> bool {
+        let msg_type: MessageTypes = MessageTypes::LanBroadcast;
+        let payload = "".to_string();
+        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
+        let m: Message = Message { msg_type: msg_type as u8, payload };
+        let p: Protocol = Protocol { id: guid, timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
+
+        return match self.match_ack(p, MessageTypes::LanBroadcastAck) {
+            None => {
+                print!("None\n");
+                false
+            }
+            Some(_) => {
+                print!("---\n");
+                print!("True\n");
+                print!("---\n");
+                true
+            }
+        };
+    }
+
     pub fn broadcast_new_master(&mut self, guid: String) -> bool {
-        let time = helper::time::Time { tim_offset: 0 };
-        let prio = 0x3;
         let msg_type: MessageTypes = MessageTypes::BroadcastNewMaster;
         let payload = "".to_string();
-        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: prio };
+        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
         let m: Message = Message { msg_type: msg_type as u8, payload };
-        let p: Protocol = Protocol { id: guid, timestamp: time.get_time_with_offset().to_string(), node: n, msg: m };
+        let p: Protocol = Protocol { id: guid, timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
 
         return match self.match_ack(p, MessageTypes::BroadcastNewMasterAck) {
+            None => {
+                print!("None\n");
+                false
+            }
+            Some(_) => {
+                print!("---\n");
+                print!("True\n");
+                print!("---\n");
+                true
+            }
+        };
+    }
+    pub fn broadcast_offset(&mut self, guid: String) -> bool {
+        let msg_type: MessageTypes = MessageTypes::LanBroadcast;
+        let payload = self.time.tim_offset.to_string();
+        let n: Node = Node { address: self.get_url(self.communication_if.comm.own_addr.clone()), priority: self.prio };
+        let m: Message = Message { msg_type: msg_type as u8, payload };
+        let p: Protocol = Protocol { id: guid, timestamp: self.time.get_time_with_offset().to_string(), node: n, msg: m };
+
+        return match self.match_ack(p, MessageTypes::LanBroadcastAck) {
             None => {
                 print!("None\n");
                 false
