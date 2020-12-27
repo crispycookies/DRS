@@ -40,7 +40,7 @@ pub enum Register {
 
 pub struct Master {
     pub communication_if: comm::comm::EasyComm,
-    pub time: helper::time::Time,
+    pub time: std::sync::Arc<helper::time::Time>,
     pub prio: u8,
     pub client_vector: HashMap<u8, Client>,
 }
@@ -184,7 +184,7 @@ impl Master {
         }
     }
 
-    pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
+    pub fn init(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
         self.communication_if.comm.foreign_addr = f_addr;
         self.communication_if.comm.own_addr = o_addr;
         self.communication_if.init(timeout, true);

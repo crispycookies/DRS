@@ -136,14 +136,14 @@ fn main() {
             communication_if: comm::comm::EasyComm {
                 comm: comm::comm_low_level::Comm::default()
             },
-            time: helper::time::Time { tim_offset: 0 },
+            time: std::sync::Arc::new (helper::time::Time { tim_offset: 0 }),
             prio: 0x3,
             client_vector: HashMap::new(),
         };
 
-        master.run(args.get(1).expect("expect a foreign address").to_string(),
-                   args.get(2).expect("expect own address").to_string(),
-                   args.get(3).expect("expect a timeout value").
+        master.init(args.get(1).expect("expect a foreign address").to_string(),
+                    args.get(2).expect("expect own address").to_string(),
+                    args.get(3).expect("expect a timeout value").
                        parse::<u64>().expect("expect a valid timeout"), 255)
     } else if args.get(4).unwrap() == "slave" {
         slave();
