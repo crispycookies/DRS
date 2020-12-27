@@ -3,8 +3,8 @@ mod helper;
 mod master_fsm;
 
 use crate::helper::json_manager::{Node, Message, Protocol};
-//use rppal::gpio::Gpio;
-//use rppal::system::DeviceInfo;
+use rppal::gpio::Gpio;
+use rppal::system::DeviceInfo;
 use std::env;
 use crate::master_fsm::{Master, MessageTypes};
 use std::time::Duration;
@@ -93,7 +93,6 @@ fn main() {
                        parse::<u64>().expect("expect a valid timeout"), 255)
 
 
-        //master()
     } else if args.get(4).unwrap() == "slave" {
         slave();
     } else {

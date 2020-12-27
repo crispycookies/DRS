@@ -169,27 +169,9 @@ impl Master {
         return Register::NoneReceived;
     }
 
-
-    pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
-        self.communication_if.comm.foreign_addr = f_addr;
-        self.communication_if.comm.own_addr = o_addr;
-        self.communication_if.init(timeout, true);
-
-
-        std::thread::spawn(move || {
-
-        });
-
-
-        let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
-        guid.create_random_guid();
-
-        let _fsm = FSM::StartUp;
-
-        self.client_vector.insert(init_prio, Client { url: self.communication_if.comm.own_addr.clone() });
-
+    pub fn run_cyclic(&mut self, guid : String){
         loop {
-            let guid_clone = guid.guid.clone();
+            let guid_clone = guid.clone();
             match self.communication_if.receive_package() {
                 Ok(e) => {
                     if self.register(e.clone(), guid_clone.clone()) as u8 != Register::NoneReceived as u8 {
@@ -200,5 +182,26 @@ impl Master {
                 Err(_) => {}
             }
         }
+    }
+
+    pub fn run(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
+        self.communication_if.comm.foreign_addr = f_addr;
+        self.communication_if.comm.own_addr = o_addr;
+        self.communication_if.init(timeout, true);
+        self.client_vector.insert(init_prio, Client { url: self.communication_if.comm.own_addr.clone() });
+
+
+        let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
+        guid.create_random_guid();
+
+        let cyclic = std::thread::spawn( move || {
+            //self.run_cyclic(guid.guid.clone());
+        });
+        match cyclic.join() {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+
+
     }
 }
