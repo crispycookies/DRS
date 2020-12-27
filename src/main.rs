@@ -79,7 +79,7 @@ fn slave() -> () {
 fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
     if desktop_mode {
         const SEC_DIVIDER: u128 = 1000000;
-        const SEC_ADDER: u128 = (SEC_DIVIDER /2);
+        const SEC_ADDER: u128 = (SEC_DIVIDER / 2);
         let mut start_time = time.get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -92,7 +92,7 @@ fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
     } else {
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
         const SEC_DIVIDER: u128 = 1000000;
-        const SEC_ADDER: u128 = (SEC_DIVIDER /2);
+        const SEC_ADDER: u128 = (SEC_DIVIDER / 2);
         let mut start_time = time.get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -103,7 +103,7 @@ fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
             println!("Test {}:{}:s-{}", time.get_time_with_offset(), next_scheduled, start_time);
             if gpio_pin.is_set_high() {
                 gpio_pin.set_low();
-            }else {
+            } else {
                 gpio_pin.set_high();
             }
         }
@@ -127,31 +127,30 @@ fn main() {
         let time = helper::time::Time { tim_offset: 0 };
         run_pin_toggle(&time_arc, 12, true);
     });
+
+
+
+    let args: Vec<String> = env::args().collect();
+    if args.get(4).unwrap() == "master" {
+        let mut master = Master {
+            communication_if: comm::comm::EasyComm {
+                comm: comm::comm_low_level::Comm::default()
+            },
+            time: helper::time::Time { tim_offset: 0 },
+            prio: 0x3,
+            client_vector: HashMap::new(),
+        };
+
+        master.run(args.get(1).expect("expect a foreign address").to_string(),
+                   args.get(2).expect("expect own address").to_string(),
+                   args.get(3).expect("expect a timeout value").
+                       parse::<u64>().expect("expect a valid timeout"), 255)
+    } else if args.get(4).unwrap() == "slave" {
+        slave();
+    } else {
+        panic!("DRS must be either Slave or Master");
+    }
+
     spawn.join();
 
-
-
-
-    /*
-        let args: Vec<String> = env::args().collect();
-        if args.get(4).unwrap() == "master" {
-            let mut master = Master {
-                communication_if: comm::comm::EasyComm {
-                    comm: comm::comm_low_level::Comm::default()
-                },
-                time: helper::time::Time { tim_offset: 0 },
-                prio: 0x3,
-                client_vector: HashMap::new(),
-            };
-
-            master.run(args.get(1).expect("expect a foreign address").to_string(),
-                       args.get(2).expect("expect own address").to_string(),
-                       args.get(3).expect("expect a timeout value").
-                           parse::<u64>().expect("expect a valid timeout"), 255)
-        } else if args.get(4).unwrap() == "slave" {
-            slave();
-        } else {
-            panic!("DRS must be either Slave or Master");
-        }
-     */
 }
