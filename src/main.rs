@@ -4,7 +4,7 @@ mod master_fsm;
 
 use crate::helper::json_manager::{Node, Message, Protocol};
 use rppal::gpio::Gpio;
-use rppal::system::DeviceInfo;
+use rppal::system::{DeviceInfo, Error};
 use std::env;
 use crate::master_fsm::{Master, MessageTypes};
 use std::time::Duration;
@@ -52,50 +52,104 @@ fn slave() -> () {
         }
 
 
-       /* match slave.receive_package() {
-            Ok(e) => {
-                print!("received package {}", helper::json_manager::serialize(e.clone()));
-                if e.msg.msg_type == 0x03 {
-                    let cloned_guid = guid.guid.clone();
-                    let n: Node = Node { address: args.get(1).unwrap().to_string(), priority: prio.clone() };
-                    let m: Message = Message { msg_type: 0x04, payload: "".to_string() };
-                    let p: Protocol = Protocol { id: cloned_guid, timestamp: time.get_time_with_offset().to_string(), node: n, msg: m };
+        /* match slave.receive_package() {
+             Ok(e) => {
+                 print!("received package {}", helper::json_manager::serialize(e.clone()));
+                 if e.msg.msg_type == 0x03 {
+                     let cloned_guid = guid.guid.clone();
+                     let n: Node = Node { address: args.get(1).unwrap().to_string(), priority: prio.clone() };
+                     let m: Message = Message { msg_type: 0x04, payload: "".to_string() };
+                     let p: Protocol = Protocol { id: cloned_guid, timestamp: time.get_time_with_offset().to_string(), node: n, msg: m };
 
-                    match slave.send_package(p) {
-                        Ok(_) => { print!("Succeeded in Sending\n") }
-                        Err(_) => { print!("Failed to send\n") }
-                    }
-                }
-            }
-            Err(e) => {
-                print!("No Package received or package damaged!\n");
-                print!("{}", e);
-            }
-        }
-        */
+                     match slave.send_package(p) {
+                         Ok(_) => { print!("Succeeded in Sending\n") }
+                         Err(_) => { print!("Failed to send\n") }
+                     }
+                 }
+             }
+             Err(e) => {
+                 print!("No Package received or package damaged!\n");
+                 print!("{}", e);
+             }
+         }
+         */
     }
 }
 
-fn main() {
-    //println!("Running DRS on {}.", DeviceInfo::new().unwrap().model());
-
-    let args: Vec<String> = env::args().collect();
-    if args.get(4).unwrap() == "master" {
-        let mut master = Master { communication_if: comm::comm::EasyComm {
-            comm: comm::comm_low_level::Comm::default() },
-            time: helper::time::Time { tim_offset: 0 },
-            prio: 0x3, client_vector : HashMap::new()
-        };
-
-        master.run(args.get(1).expect("expect a foreign address").to_string(),
-                   args.get(2).expect("expect own address").to_string(),
-                   args.get(3).expect("expect a timeout value").
-                       parse::<u64>().expect("expect a valid timeout"), 255)
-
-
-    } else if args.get(4).unwrap() == "slave" {
-        slave();
+fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
+    if desktop_mode {
+        const SEC_DIVIDER: u128 = 1000000;
+        const SEC_ADDER: u128 = (SEC_DIVIDER /2);
+        let mut start_time = time.get_time_with_offset();
+        start_time /= SEC_DIVIDER;
+        start_time *= SEC_DIVIDER;
+        let mut next_scheduled = start_time;
+        loop {
+            next_scheduled += SEC_ADDER;
+            while time.get_time_with_offset() < next_scheduled {}
+            println!("Test {}:{}", time.get_time_with_offset(), next_scheduled);
+        }
     } else {
-        panic!("DRS must be either Slave or Master");
+        let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
+        const SEC_DIVIDER: u128 = 1000000;
+        const SEC_ADDER: u128 = (SEC_DIVIDER /2);
+        let mut start_time = time.get_time_with_offset();
+        start_time /= SEC_DIVIDER;
+        start_time *= SEC_DIVIDER;
+        let mut next_scheduled = start_time;
+        loop {
+            next_scheduled += SEC_ADDER;
+            while time.get_time_with_offset() < next_scheduled {}
+            println!("Test {}:{}", time.get_time_with_offset(), next_scheduled);
+            if gpio_pin.is_set_high() {
+                gpio_pin.set_low();
+            }else {
+                gpio_pin.set_high();
+            }
+        }
     }
+}
+
+
+fn main() {
+    match DeviceInfo::new() {
+        Ok(e) => {
+            println!("Running DRS on {}.", e.model());
+        }
+        Err(_) => {
+            println!("Running on Generic Desktop PC or similar");
+        }
+    }
+    let time = helper::time::Time { tim_offset: 0 };
+
+    let spawn = std::thread::spawn(|| {
+        run_pin_toggle(&time, 12, true);
+    });
+    spawn.join();
+
+
+
+
+    /*
+        let args: Vec<String> = env::args().collect();
+        if args.get(4).unwrap() == "master" {
+            let mut master = Master {
+                communication_if: comm::comm::EasyComm {
+                    comm: comm::comm_low_level::Comm::default()
+                },
+                time: helper::time::Time { tim_offset: 0 },
+                prio: 0x3,
+                client_vector: HashMap::new(),
+            };
+
+            master.run(args.get(1).expect("expect a foreign address").to_string(),
+                       args.get(2).expect("expect own address").to_string(),
+                       args.get(3).expect("expect a timeout value").
+                           parse::<u64>().expect("expect a valid timeout"), 255)
+        } else if args.get(4).unwrap() == "slave" {
+            slave();
+        } else {
+            panic!("DRS must be either Slave or Master");
+        }
+     */
 }
