@@ -87,7 +87,7 @@ fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
         loop {
             next_scheduled += SEC_ADDER;
             while time.get_time_with_offset() < next_scheduled {}
-            println!("Test {}:{}", time.get_time_with_offset(), next_scheduled);
+            println!("Test {}:{}:s-{}", time.get_time_with_offset(), next_scheduled, start_time);
         }
     } else {
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
@@ -100,7 +100,7 @@ fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
         loop {
             next_scheduled += SEC_ADDER;
             while time.get_time_with_offset() < next_scheduled {}
-            println!("Test {}:{}", time.get_time_with_offset(), next_scheduled);
+            println!("Test {}:{}:s-{}", time.get_time_with_offset(), next_scheduled, start_time);
             if gpio_pin.is_set_high() {
                 gpio_pin.set_low();
             }else {
@@ -120,10 +120,12 @@ fn main() {
             println!("Running on Generic Desktop PC or similar");
         }
     }
-    let time = helper::time::Time { tim_offset: 0 };
+    let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
 
-    let spawn = std::thread::spawn(|| {
-        run_pin_toggle(&time, 12, true);
+
+    let spawn = std::thread::spawn(move || {
+        let time = helper::time::Time { tim_offset: 0 };
+        run_pin_toggle(&time_arc, 12, true);
     });
     spawn.join();
 
