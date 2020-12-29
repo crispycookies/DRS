@@ -6,15 +6,11 @@ use crate::helper::json_manager::{Node, Message, Protocol};
 use rppal::gpio::Gpio;
 use rppal::system::{DeviceInfo};
 use std::env;
-use crate::master_fsm::{Master, MessageTypes};
+use crate::master_fsm::{Master, MessageTypes, InnerMaster};
 use std::time::Duration;
 use std::collections::HashMap;
 
 fn slave() -> () {
-    //const GPIO_LED: u8 = 12;
-    //let mut pin = Gpio::new().expect("...").get(GPIO_LED).expect("...").into_output();
-
-
     let args: Vec<String> = env::args().collect();
     let mut slave = comm::comm::EasyComm { comm: comm::comm_low_level::Comm::default() };
     slave.comm.foreign_addr = args.get(1).expect("expect a foreign address").to_string();
@@ -110,7 +106,6 @@ fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mod
     }
 }
 
-
 fn main() {
     let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
     let time_arc_for_thread = time_arc.clone();
@@ -131,19 +126,19 @@ fn main() {
     });
 
     if args.get(4).unwrap() == "master" {
-        let mut master = Master {
+        let master = Master { inner: std::sync::Arc::new( std::sync::Mutex::new(InnerMaster {
             communication_if: comm::comm::EasyComm {
                 comm: comm::comm_low_level::Comm::default()
             },
             time: time_arc_for_master_run_thread,
             prio: 0xFF,
-            client_vector: HashMap::new(),
+            client_vector: HashMap::new()}))
         };
 
         master.init(args.get(1).expect("expect a foreign address").to_string(),
                     args.get(2).expect("expect own address").to_string(),
                     args.get(3).expect("expect a timeout value").
-                       parse::<u64>().expect("expect a valid timeout"))
+                       parse::<u64>().expect("expect a valid timeout"));
     } else if args.get(4).unwrap() == "slave" {
         slave();
     } else {

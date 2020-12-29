@@ -1,6 +1,7 @@
 use crate::{comm, helper};
 use crate::helper::json_manager::{Node, Message, Protocol};
 use std::collections::HashMap;
+use std::ops::Deref;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
@@ -37,16 +38,20 @@ pub enum Register {
     FailedAck,
 }
 
-
-pub struct Master {
+pub struct InnerMaster {
     pub communication_if: comm::comm::EasyComm,
     pub time: std::sync::Arc<helper::time::Time>,
     pub prio: u8,
     pub client_vector: HashMap<u8, Client>,
 }
 
+pub struct Master {
+    pub(crate) inner : std::sync::Arc<std::sync::Mutex<InnerMaster>>
+}
+
 #[allow(dead_code)]
 impl Master {
+    /*
     pub fn get_url(&self, url: String) -> String {
         let pos = url.find(':');
         url[0..pos.expect("Expected Port; none given")].to_string()
@@ -168,11 +173,12 @@ impl Master {
         print!("None Received!");
         return Register::NoneReceived;
     }
-
+*/
     pub fn run_cyclic(&mut self, guid : String){
+        let self_clone = self.inner.clone();
         loop {
             let guid_clone = guid.clone();
-            match self.communication_if.receive_package() {
+            match self.inner.lock().unwrap().communication_if.receive_package() {
                 Ok(e) => {
                     if self.register(e.clone(), guid_clone.clone()) as u8 != Register::NoneReceived as u8 {
 
@@ -185,17 +191,19 @@ impl Master {
     }
 
     pub fn init(&mut self, f_addr: String, o_addr: String, timeout: u64) -> () {
-        self.communication_if.comm.foreign_addr = f_addr;
-        self.communication_if.comm.own_addr = o_addr;
-        self.communication_if.init(timeout, true);
-        self.client_vector.insert(self.prio, Client { url: self.communication_if.comm.own_addr.clone() });
+        let self_clone = self.inner.clone();
+        self_clone.lock().unwrap().prio = 10;
+        self_clone.lock().unwrap().communication_if.comm.foreign_addr = f_addr;
+        self_clone.lock().unwrap().communication_if.comm.own_addr = o_addr;
+        self_clone.lock().unwrap().communication_if.init(timeout, true);
+        self_clone.lock().unwrap().client_vector.insert(self_clone.lock().unwrap().prio, Client { url: self_clone.lock().unwrap().communication_if.comm.own_addr.clone() });
 
 
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
         guid.create_random_guid();
 
         let cyclic = std::thread::spawn( move || {
-            //self.run_cyclic(guid.guid.clone());
+            self.run_cyclic(guid.guid.clone());
         });
         match cyclic.join() {
             Ok(_) => {}
@@ -204,4 +212,5 @@ impl Master {
 
 
     }
+
 }
