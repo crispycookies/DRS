@@ -184,11 +184,11 @@ impl Master {
         }
     }
 
-    pub fn init(&mut self, f_addr: String, o_addr: String, timeout: u64, init_prio : u8) -> () {
+    pub fn init(&mut self, f_addr: String, o_addr: String, timeout: u64) -> () {
         self.communication_if.comm.foreign_addr = f_addr;
         self.communication_if.comm.own_addr = o_addr;
         self.communication_if.init(timeout, true);
-        self.client_vector.insert(init_prio, Client { url: self.communication_if.comm.own_addr.clone() });
+        self.client_vector.insert(self.prio, Client { url: self.communication_if.comm.own_addr.clone() });
 
 
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };

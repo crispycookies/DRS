@@ -76,7 +76,7 @@ fn slave() -> () {
     }
 }
 
-fn run_pin_toggle(time: &helper::time::Time, pin: u8, desktop_mode: bool) {
+fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mode: bool) {
     if desktop_mode {
         const SEC_DIVIDER: u128 = 1000000;
         const SEC_ADDER: u128 = (SEC_DIVIDER / 2);
@@ -121,11 +121,11 @@ fn main() {
         }
     }
     let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
-
+    let time_arc_for_thread = time_arc.clone();
+    let time_arc_for_master_run_thread = time_arc.clone();
 
     let spawn = std::thread::spawn(move || {
-        let time = helper::time::Time { tim_offset: 0 };
-        run_pin_toggle(&time_arc, 12, true);
+        run_pin_toggle(time_arc_for_thread, 12, true);
     });
 
 
@@ -136,15 +136,15 @@ fn main() {
             communication_if: comm::comm::EasyComm {
                 comm: comm::comm_low_level::Comm::default()
             },
-            time: std::sync::Arc::new (helper::time::Time { tim_offset: 0 }),
-            prio: 0x3,
+            time: time_arc_for_master_run_thread,
+            prio: 0xFF,
             client_vector: HashMap::new(),
         };
 
         master.init(args.get(1).expect("expect a foreign address").to_string(),
                     args.get(2).expect("expect own address").to_string(),
                     args.get(3).expect("expect a timeout value").
-                       parse::<u64>().expect("expect a valid timeout"), 255)
+                       parse::<u64>().expect("expect a valid timeout"))
     } else if args.get(4).unwrap() == "slave" {
         slave();
     } else {
