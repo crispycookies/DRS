@@ -4,7 +4,7 @@ mod master_fsm;
 
 use crate::helper::json_manager::{Node, Message, Protocol};
 use rppal::gpio::Gpio;
-use rppal::system::{DeviceInfo, Error};
+use rppal::system::{DeviceInfo};
 use std::env;
 use crate::master_fsm::{Master, MessageTypes};
 use std::time::Duration;
@@ -79,7 +79,7 @@ fn slave() -> () {
 fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mode: bool) {
     if desktop_mode {
         const SEC_DIVIDER: u128 = 1000000;
-        const SEC_ADDER: u128 = (SEC_DIVIDER / 2);
+        const SEC_ADDER: u128 = SEC_DIVIDER / 2;
         let mut start_time = time.get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -92,7 +92,7 @@ fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mod
     } else {
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
         const SEC_DIVIDER: u128 = 1000000;
-        const SEC_ADDER: u128 = (SEC_DIVIDER / 2);
+        const SEC_ADDER: u128 = SEC_DIVIDER / 2;
         let mut start_time = time.get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -112,6 +112,11 @@ fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mod
 
 
 fn main() {
+    let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
+    let time_arc_for_thread = time_arc.clone();
+    let time_arc_for_master_run_thread = time_arc.clone();
+    let args: Vec<String> = env::args().collect();
+
     match DeviceInfo::new() {
         Ok(e) => {
             println!("Running DRS on {}.", e.model());
@@ -120,17 +125,11 @@ fn main() {
             println!("Running on Generic Desktop PC or similar");
         }
     }
-    let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
-    let time_arc_for_thread = time_arc.clone();
-    let time_arc_for_master_run_thread = time_arc.clone();
 
     let spawn = std::thread::spawn(move || {
         run_pin_toggle(time_arc_for_thread, 12, true);
     });
 
-
-
-    let args: Vec<String> = env::args().collect();
     if args.get(4).unwrap() == "master" {
         let mut master = Master {
             communication_if: comm::comm::EasyComm {
@@ -151,6 +150,8 @@ fn main() {
         panic!("DRS must be either Slave or Master");
     }
 
-    spawn.join();
-
+    match spawn.join(){
+        Ok(_) => {}
+        Err(_) => {}
+    }
 }
