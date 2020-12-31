@@ -21,7 +21,7 @@ fn slave() -> () {
     let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
     guid.create_random_guid();
 
-    let time = helper::time::Time { tim_offset: 0 };
+    let time = helper::time::Time { tim_offset: std::sync::Mutex::new(0) };
     let prio = 0x3;
 
 
@@ -109,7 +109,7 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
 }
 
 fn main() {
-    let time_arc = std::sync::Arc::new(std::sync::Mutex::new(helper::time::Time { tim_offset: 0 }));
+    let time_arc = std::sync::Arc::new(std::sync::Mutex::new(helper::time::Time { tim_offset: std::sync::Mutex::new(0) }));
     let time_arc_for_thread = time_arc.clone();
     let time_arc_for_master_run_thread = time_arc.clone();
     let args: Vec<String> = env::args().collect();
