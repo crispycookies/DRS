@@ -77,7 +77,7 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
     if desktop_mode {
         const SEC_DIVIDER: u128 = 1000000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 2;
-        
+
         let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -91,19 +91,19 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
         const SEC_DIVIDER: u128 = 1000000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 2;
-        let mut start_time =  time.lock().unwrap().get_time_with_offset();
+        let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
         let mut next_scheduled = start_time;
         loop {
             next_scheduled += SEC_ADDER;
             while time.lock().unwrap().get_time_with_offset() < next_scheduled {}
-            println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
             if gpio_pin.is_set_high() {
                 gpio_pin.set_low();
             } else {
                 gpio_pin.set_high();
             }
+            println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
         }
     }
 }
@@ -123,19 +123,19 @@ fn main() {
         }
     }
 
-    let spawn = std::thread::spawn(move || {
+    /*let spawn = std::thread::spawn(move || {
         run_pin_toggle(time_arc_for_thread, 12, true);
-    });
+    });*/
 
-    if args.get(4).unwrap() == "master" {
+    if args.get(4).unwrap() == "slave" {
         let mut master = Master {
             inner: std::sync::Arc::new(std::sync::Mutex::new(InnerMaster {
                 communication_if: std::sync::Mutex::new(comm::comm::EasyComm {
                     comm: comm::comm_low_level::Comm::default()
                 }),
                 time: time_arc_for_master_run_thread,
-                prio: std::sync::Mutex::new(0xFF),
-                client_vector: std::sync::Mutex::new(HashMap::new()),
+                prio: 0xFF,
+                client_vector: HashMap::new(),
             }))
         };
 
@@ -149,8 +149,8 @@ fn main() {
         panic!("DRS must be either Slave or Master");
     }
 
-    match spawn.join() {
+    /*match spawn.join() {
         Ok(_) => {}
         Err(_) => {}
-    }
+    }*/
 }
