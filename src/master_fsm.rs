@@ -39,10 +39,10 @@ pub enum Register {
 }
 
 pub struct InnerMaster {
-    pub communication_if: comm::comm::EasyComm,
-    pub time: std::sync::Arc<helper::time::Time>,
-    pub prio: u8,
-    pub client_vector: HashMap<u8, Client>,
+    pub communication_if: std::sync::Mutex<comm::comm::EasyComm>,
+    pub time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>,
+    pub prio: std::sync::Mutex<u8>,
+    pub client_vector: std::sync::Mutex<HashMap<u8, Client>>
 }
 
 pub struct Master {
@@ -173,7 +173,7 @@ impl Master {
         print!("None Received!");
         return Register::NoneReceived;
     }
-*/
+
     pub fn run_cyclic(&mut self, guid : String){
         let self_clone = self.inner.clone();
         loop {
@@ -189,28 +189,33 @@ impl Master {
             }
         }
     }
-
+ */
     pub fn init(&mut self, f_addr: String, o_addr: String, timeout: u64) -> () {
-        let self_clone = self.inner.clone();
-        self_clone.lock().unwrap().prio = 10;
-        self_clone.lock().unwrap().communication_if.comm.foreign_addr = f_addr;
-        self_clone.lock().unwrap().communication_if.comm.own_addr = o_addr;
-        self_clone.lock().unwrap().communication_if.init(timeout, true);
-        self_clone.lock().unwrap().client_vector.insert(self_clone.lock().unwrap().prio, Client { url: self_clone.lock().unwrap().communication_if.comm.own_addr.clone() });
+        /*
+                let self_clone = self.inner.clone();
+                self_clone.lock().unwrap().prio = 10;
+                self_clone.lock().unwrap().communication_if.comm.foreign_addr = f_addr;
+                self_clone.lock().unwrap().communication_if.comm.own_addr = o_addr;
+                self_clone.lock().unwrap().communication_if.init(timeout, true);
+                self_clone.lock().unwrap().client_vector.insert(self_clone.lock().unwrap().prio, Client { url: self_clone.lock().unwrap().communication_if.comm.own_addr.clone() });
 
 
-        let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
-        guid.create_random_guid();
+                let mut guid = helper::guid::RandomGuid { guid: "".to_string() };
+                guid.create_random_guid();
 
-        let cyclic = std::thread::spawn( move || {
-            self.run_cyclic(guid.guid.clone());
-        });
-        match cyclic.join() {
-            Ok(_) => {}
-            Err(_) => {}
+                let cyclic = std::thread::spawn( move || {
+                    self.run_cyclic(guid.guid.clone());
+                });
+                match cyclic.join() {
+                    Ok(_) => {}
+                    Err(_) => {}
+                }
+
+
+            }
+
         }
 
-
+         */
     }
-
 }

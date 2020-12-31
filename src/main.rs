@@ -9,6 +9,7 @@ use std::env;
 use crate::master_fsm::{Master, MessageTypes, InnerMaster};
 use std::time::Duration;
 use std::collections::HashMap;
+use std::ops::Deref;
 
 fn slave() -> () {
     let args: Vec<String> = env::args().collect();
@@ -72,31 +73,32 @@ fn slave() -> () {
     }
 }
 
-fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mode: bool) {
+fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pin: u8, desktop_mode: bool) {
     if desktop_mode {
         const SEC_DIVIDER: u128 = 1000000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 2;
-        let mut start_time = time.get_time_with_offset();
+        
+        let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
         let mut next_scheduled = start_time;
         loop {
             next_scheduled += SEC_ADDER;
-            while time.get_time_with_offset() < next_scheduled {}
-            println!("Test {}:{}:s-{}", time.get_time_with_offset(), next_scheduled, start_time);
+            while time.lock().unwrap().get_time_with_offset() < next_scheduled {}
+            println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
         }
     } else {
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
         const SEC_DIVIDER: u128 = 1000000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 2;
-        let mut start_time = time.get_time_with_offset();
+        let mut start_time =  time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
         let mut next_scheduled = start_time;
         loop {
             next_scheduled += SEC_ADDER;
-            while time.get_time_with_offset() < next_scheduled {}
-            println!("Test {}:{}:s-{}", time.get_time_with_offset(), next_scheduled, start_time);
+            while time.lock().unwrap().get_time_with_offset() < next_scheduled {}
+            println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
             if gpio_pin.is_set_high() {
                 gpio_pin.set_low();
             } else {
@@ -107,7 +109,7 @@ fn run_pin_toggle(time: std::sync::Arc<helper::time::Time>, pin: u8, desktop_mod
 }
 
 fn main() {
-    let time_arc = std::sync::Arc::new(helper::time::Time { tim_offset: 0 });
+    let time_arc = std::sync::Arc::new(std::sync::Mutex::new(helper::time::Time { tim_offset: 0 }));
     let time_arc_for_thread = time_arc.clone();
     let time_arc_for_master_run_thread = time_arc.clone();
     let args: Vec<String> = env::args().collect();
@@ -126,26 +128,28 @@ fn main() {
     });
 
     if args.get(4).unwrap() == "master" {
-        let master = Master { inner: std::sync::Arc::new( std::sync::Mutex::new(InnerMaster {
-            communication_if: comm::comm::EasyComm {
-                comm: comm::comm_low_level::Comm::default()
-            },
-            time: time_arc_for_master_run_thread,
-            prio: 0xFF,
-            client_vector: HashMap::new()}))
+        let mut master = Master {
+            inner: std::sync::Arc::new(std::sync::Mutex::new(InnerMaster {
+                communication_if: std::sync::Mutex::new(comm::comm::EasyComm {
+                    comm: comm::comm_low_level::Comm::default()
+                }),
+                time: time_arc_for_master_run_thread,
+                prio: std::sync::Mutex::new(0xFF),
+                client_vector: std::sync::Mutex::new(HashMap::new()),
+            }))
         };
 
         master.init(args.get(1).expect("expect a foreign address").to_string(),
                     args.get(2).expect("expect own address").to_string(),
                     args.get(3).expect("expect a timeout value").
-                       parse::<u64>().expect("expect a valid timeout"));
+                        parse::<u64>().expect("expect a valid timeout"));
     } else if args.get(4).unwrap() == "slave" {
         slave();
     } else {
         panic!("DRS must be either Slave or Master");
     }
 
-    match spawn.join(){
+    match spawn.join() {
         Ok(_) => {}
         Err(_) => {}
     }
