@@ -9,7 +9,6 @@ use std::env;
 use crate::master_fsm::{Master, MessageTypes, InnerMaster};
 use std::time::Duration;
 use std::collections::HashMap;
-use std::ops::Deref;
 
 fn slave() -> () {
     let args: Vec<String> = env::args().collect();
@@ -123,24 +122,11 @@ fn main() {
         }
     }
 
-    /*let spawn = std::thread::spawn(move || {
+    let spawn = std::thread::spawn(move || {
         run_pin_toggle(time_arc_for_thread, 12, true);
-    });*/
+    });
 
-    if args.get(4).unwrap() == "slave" {
-        /*
-        let mut master = Master {
-            inner: std::sync::Arc::new(InnerMaster {
-                communication_if: std::sync::Mutex::new(comm::comm::EasyComm {
-                    comm: comm::comm_low_level::Comm::default()
-                },
-                time: time_arc_for_master_run_thread,
-                prio: 0xFF,
-                client_vector: HashMap::new(),
-            }))
-        };
-         */
-
+    if args.get(4).unwrap() == "master" {
         let cf = comm::comm::EasyComm {comm : comm::comm_low_level::Comm::default()};
         let mut master = Master {
             inner: InnerMaster {
@@ -161,8 +147,8 @@ fn main() {
         panic!("DRS must be either Slave or Master");
     }
 
-    /*match spawn.join() {
+    match spawn.join() {
         Ok(_) => {}
         Err(_) => {}
-    }*/
+    }
 }
