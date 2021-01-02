@@ -42,7 +42,7 @@ pub struct InnerMaster {
     pub communication_if: comm::comm::EasyComm,
     pub time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>,
     pub prio: u8,
-    pub client_vector: HashMap<u8, Client>,
+    pub client_vector: std::sync::Mutex<HashMap<u8, Client>>,
 }
 
 
@@ -154,12 +154,15 @@ impl Master {
             let mut r_val: Register = Register::NoneReceived;
 
             let f_addr_rec_d = e.node.address.clone();
-            if self.inner.client_vector.contains_key(&e.node.priority) {
-                print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, self.inner.client_vector.get(&e.node.priority).unwrap().url, e.node.address);
+
+            let check = self.inner.client_vector.lock().unwrap().contains_key(&e.node.priority);
+
+            if check {
+                print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, self.inner.client_vector.lock().unwrap().get(&e.node.priority).unwrap().url, e.node.address);
                 r_val = Register::NoneRegistered;
             } else {
-                print!("Registering Client with address {}\n {} Clients connected", e.node.address, self.inner.client_vector.len());
-                self.inner.client_vector.insert(e.node.priority, Client { url: e.node.address });
+                print!("Client with Priority {} is already registered for address {}, dropping address {}\n", e.node.priority, self.inner.client_vector.lock().unwrap().get(&e.node.priority).unwrap().url, e.node.address);
+                self.inner.client_vector.lock().unwrap().insert(e.node.priority, Client { url: e.node.address });
                 r_val = Register::OneRegistered;
             }
 
@@ -203,7 +206,7 @@ impl Master {
         self.inner.communication_if.init(timeout.clone(), true);
 
 
-        self.inner.client_vector.insert(self.inner.prio, Client { url: o_addr });
+        self.inner.client_vector.lock().unwrap().insert(self.inner.prio, Client { url: o_addr });
 
 
         let mut guid = helper::guid::RandomGuid { guid: "".to_string() };

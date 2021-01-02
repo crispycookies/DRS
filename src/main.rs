@@ -133,7 +133,7 @@ fn main() {
                 communication_if: cf,
                 time: time_arc_for_master_run_thread,
                 prio: 0xFF,
-                client_vector: HashMap::new()
+                client_vector: std::sync::Mutex::new(HashMap::new())
             }
         };
 
@@ -141,6 +141,7 @@ fn main() {
                     args.get(2).expect("expect own address").to_string(),
                     args.get(3).expect("expect a timeout value").
                         parse::<u64>().expect("expect a valid timeout"));
+
     } else if args.get(4).unwrap() == "slave" {
         slave();
     } else {
