@@ -128,15 +128,27 @@ fn main() {
     });*/
 
     if args.get(4).unwrap() == "slave" {
+        /*
         let mut master = Master {
-            inner: std::sync::Arc::new(std::sync::Mutex::new(InnerMaster {
+            inner: std::sync::Arc::new(InnerMaster {
                 communication_if: std::sync::Mutex::new(comm::comm::EasyComm {
                     comm: comm::comm_low_level::Comm::default()
-                }),
+                },
                 time: time_arc_for_master_run_thread,
                 prio: 0xFF,
                 client_vector: HashMap::new(),
             }))
+        };
+         */
+
+        let cf = comm::comm::EasyComm {comm : comm::comm_low_level::Comm::default()};
+        let mut master = Master {
+            inner: InnerMaster {
+                communication_if: cf,
+                time: time_arc_for_master_run_thread,
+                prio: 0xFF,
+                client_vector: HashMap::new()
+            }
         };
 
         master.init(args.get(1).expect("expect a foreign address").to_string(),
