@@ -3,8 +3,8 @@ mod helper;
 mod master_fsm;
 
 use crate::helper::json_manager::{Node, Message, Protocol};
-//use rppal::gpio::Gpio;
-//use rppal::system::{DeviceInfo};
+use rppal::gpio::Gpio;
+use rppal::system::{DeviceInfo};
 use std::env;
 use crate::master_fsm::{Master, MessageTypes, InnerMaster};
 use std::time::Duration;
@@ -88,8 +88,8 @@ fn slave() -> () {
 
 fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pin: u8, desktop_mode: bool) {
     if desktop_mode {
-        const SEC_DIVIDER: u128 = 6000000;
-        const SEC_ADDER: u128 = SEC_DIVIDER / 2;
+        const SEC_DIVIDER: u128 = 100000;
+        const SEC_ADDER: u128 = SEC_DIVIDER / 4;
 
         let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
@@ -101,9 +101,9 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
             println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
         }
     } else {
-        //let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
-        const SEC_DIVIDER: u128 = 1000000;
-        const SEC_ADDER: u128 = SEC_DIVIDER / 2;
+        let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
+        const SEC_DIVIDER: u128 = 100000;
+        const SEC_ADDER: u128 = SEC_DIVIDER / 4;
         let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
         start_time *= SEC_DIVIDER;
@@ -111,11 +111,11 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
         loop {
             next_scheduled += SEC_ADDER;
             while time.lock().unwrap().get_time_with_offset() < next_scheduled {}
-            /*if gpio_pin.is_set_high() {
+            if gpio_pin.is_set_high() {
                 gpio_pin.set_low();
             } else {
                 gpio_pin.set_high();
-            }*/
+            }
             println!("Test {}:{}:s-{}", time.lock().unwrap().get_time_with_offset(), next_scheduled, start_time);
         }
     }
@@ -127,14 +127,14 @@ fn main() {
     let time_arc_for_master_run_thread = time_arc.clone();
     let args: Vec<String> = env::args().collect();
 
-    /*match DeviceInfo::new() {
+    match DeviceInfo::new() {
         Ok(e) => {
             println!("Running DRS on {}.", e.model());
         }
         Err(_) => {
             println!("Running on Generic Desktop PC or similar");
         }
-    }*/
+    }
 
     let spawn = std::thread::spawn(move || {
         run_pin_toggle(time_arc_for_thread, 12, true);
