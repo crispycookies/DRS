@@ -254,7 +254,7 @@ impl Master {
                     let t2 = self.get_client_time_stamp(guid.clone());
                     let t3 = self.inner.time.lock().unwrap().get_time_with_offset();
                     if (t2.is_some()) {
-                        let t = 2*(t2.unwrap() as i128) - t1 as i128 - t3.unwrap() as i128;
+                        let t = 2*(t2.unwrap() as i128) - t1 as i128 - t3 as i128;
                         times.push(t);
                     }
                 }
