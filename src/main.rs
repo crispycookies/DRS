@@ -88,7 +88,7 @@ fn slave() -> () {
 
 fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pin: u8, desktop_mode: bool) {
     if desktop_mode {
-        const SEC_DIVIDER: u128 = 100000;
+        const SEC_DIVIDER: u128 = 80000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 4;
 
         let mut start_time = time.lock().unwrap().get_time_with_offset();
@@ -102,7 +102,7 @@ fn run_pin_toggle(time: std::sync::Arc<std::sync::Mutex<helper::time::Time>>, pi
         }
     } else {
         let mut gpio_pin = Gpio::new().expect("...").get(pin).expect("Wrong Pin").into_output();
-        const SEC_DIVIDER: u128 = 100000;
+        const SEC_DIVIDER: u128 = 80000;
         const SEC_ADDER: u128 = SEC_DIVIDER / 4;
         let mut start_time = time.lock().unwrap().get_time_with_offset();
         start_time /= SEC_DIVIDER;
