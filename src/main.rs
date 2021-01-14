@@ -137,7 +137,7 @@ fn main() {
     }
 
     let spawn = std::thread::spawn(move || {
-        run_pin_toggle(time_arc_for_thread, 12, true);
+        run_pin_toggle(time_arc_for_thread, 12, false);
     });
 
     if args.get(4).unwrap() == "master" {
