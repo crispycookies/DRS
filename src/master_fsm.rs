@@ -1,8 +1,6 @@
 use crate::{comm, helper};
 use crate::helper::json_manager::{Node, Message, Protocol};
 use std::collections::HashMap;
-use std::num::ParseIntError;
-
 
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
@@ -232,7 +230,7 @@ impl Master {
 
     pub fn run_cyclic(&mut self, guid: String) {
         loop {
-            if(self.inner.client_vector.len() != 2) {
+            if self.inner.client_vector.len() != 2 {
                 match self.inner.communication_if.receive_package() {
                     Ok(e) => {
                         if self.register(e.clone(), guid.clone()) as u8 != Register::NoneReceived as u8 {}
@@ -244,37 +242,34 @@ impl Master {
 
             let copy = self.inner.client_vector.clone();
 
-            for (k,v) in copy {
+            for (_k,v) in copy {
 
                 let mut times:Vec<i128> = Vec::new();
                 self.inner.communication_if.comm.foreign_addr = v.url.clone();
 
-                for n in 0..3 {
+                for _n in 0..3 {
                     let t1 = self.inner.time.lock().unwrap().get_time_with_offset();
                     let t2 = self.get_client_time_stamp(guid.clone());
                     let t3 = self.inner.time.lock().unwrap().get_time_with_offset();
-                    if (t2.is_some()) {
+                    if t2.is_some() {
                         let t = 2*(t2.unwrap() as i128) - t1 as i128 - t3 as i128;
                         times.push(t);
                     }
                 }
 
-                let mut maxValue:i128 = 0;
+                let mut max_value:i128 = 0;
                 match times.iter().max() {
-                    Some(e) => {maxValue = *e}
-                    None => {maxValue = times[2]}
+                    Some(e) => { max_value = *e}
+                    None => { max_value = times[2]}
                 }
 
-                let index = times.iter().position(|x| *x == maxValue).unwrap();
+                let index = times.iter().position(|x| *x == max_value).unwrap();
                 times.remove(index);
 
                 let offset_time = (times[0] + times[1]) / 2;
                 self.send_offset_to_client(guid.clone(), offset_time);
             }
         }
-    }
-    pub fn run_sync(&mut self, guid: String){
-
     }
 
     pub fn run(&mut self){
@@ -301,7 +296,6 @@ impl Master {
         match crossbeam::scope(|scope| {
             scope.spawn(move |_| {
                 self.run_cyclic(guid_copy.clone());
-                self.run_sync(guid_copy.clone());
             });
         }) {
             Ok(_) => {}
